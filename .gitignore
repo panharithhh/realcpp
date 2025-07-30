@@ -1,0 +1,29 @@
+# CLion / CMake generated directories
+.idea/
+cmake-build-*/
+build/
+CMakeFiles/
+CMakeCache.txt
+Testing/
+.cmake/
+
+# Compilation artifacts
+*.o
+*.obj
+*.exe
+*.out
+*.a
+*.so
+*.dll
+
+# Logs and miscellaneous
+*.log
+*.tmp
+*.swp
+.DS_Store
+
+# VSCode settings (if any)
+.vscode/
+
+# Generated compile commands
+compile_commands.json

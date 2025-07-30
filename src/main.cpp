@@ -7,12 +7,30 @@
 #include <limits>
 #include "generatenum.h"
 #include "product.h"
+#include <thread>
+#include <chrono>
 
 using namespace std;
 
 
 
+void displaySplash() {
+    string lines[] = {
+        "╦ ╦┌─┐┬  ┌─┐┌─┐┌┬┐┌─┐  ┌┬┐┌─┐  ╔═╗┌┬┐┌─┐┌─┐┬┌─  ╔╦╗┌─┐┌┐┌┌─┐┌─┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐  ╔═╗┬ ┬┌─┐┌┬┐┌─┐┌┬┐",
+        "║║║├┤ │  │  │ ││││├┤    │ │ │  ╚═╗ │ │ ││  ├┴┐  ║║║├─┤│││├─┤│ ┬├┤ │││├┤ │││ │   ╚═╗└┬┘└─┐ │ ├┤ │││",
+        "╚╩╝└─┘┴─┘└─┘└─┘┴ ┴└─┘   ┴ └─┘  ╚═╝ ┴ └─┘└─┘┴ ┴  ╩ ╩┴ ┴┘└┘┴ ┴└─┘└─┘┴ ┴└─┘┘└┘ ┴   ╚═╝ ┴ └─┘ ┴ └─┘┴ ┴"
+    };
+    for (int i = 0; i < 3; ++i) {
+        for (char c : lines[i]) {
+            cout << c << flush;
+            this_thread::sleep_for(chrono::milliseconds(2));
+        }
+        cout << endl;
+    }
+}
+
 int main() {
+    displaySplash();
     srand(time(0));
     bool running = true;
     int choice;
@@ -21,7 +39,7 @@ int main() {
     Stock stock;
     string generatedCode = g.computerGeneratedPassword();
 
-    // Ensure required CSV files exist
+
     {
         ofstream f("data.csv", ios::app);
     }
@@ -31,16 +49,13 @@ int main() {
 
     while (running) {
         cout << "*** WELCOME TO STOCK MANAGEMENT SYSTEM ***\n";
-        cout << R"(╦ ╦┌─┐┬  ┌─┐┌─┐┌┬┐┌─┐  ┌┬┐┌─┐  ╔═╗┌┬┐┌─┐┌─┐┬┌─  ╔╦╗┌─┐┌┐┌┌─┐┌─┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐  ╔═╗┬ ┬┌─┐┌┬┐┌─┐┌┬┐\n";
-        cout << "║║║├┤ │  │  │ ││││├┤    │ │ │  ╚═╗ │ │ ││  ├┴┐  ║║║├─┤│││├─┤│ ┬├┤ │││├┤ │││ │   ╚═╗└┬┘└─┐ │ ├┤ │││\n";
-        cout << "╚╩╝└─┘┴─┘└─┘└─┘┴ ┴└─┘   ┴ └─┘  ╚═╝ ┴ └─┘└─┘┴ ┴  ╩ ╩┴ ┴┘└┘┴ ┴└─┘└─┘┴ ┴└─┘┘└┘ ┴   ╚═╝ ┴ └─┘ ┴ └─┘┴ ┴\n)";
         cout << "\n\n\n\n";
         cout << "1. Login\n";
         cout << "2. Sign up\n";
         cout << "3. Exit\n";
         cout << "Enter your choice: ";
 
-        // Input validation for choice
+
         if (!(cin >> choice)) {
             cin.clear();
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -93,10 +108,13 @@ int main() {
                     cout << "4. Update Product\n";
                     cout << "5. Delete Product\n";
                     cout << "6. Restock Product\n";
-                    cout << "7. Logout\n";
+                    cout << "7. Sort Products By Name\n";
+                    cout << "8. Sort Products By ID\n";
+                    cout << "9. Undo Last Operation\n";
+                    cout << "10. Logout\n";
                     cout << "Please select an option: ";
 
-                    // Input validation for menu choice
+
                     if (!(cin >> menuChoice)) {
                         cin.clear();
                         cin.ignore(numeric_limits<streamsize>::max(), '\n');
@@ -106,42 +124,51 @@ int main() {
 
                     switch (menuChoice) {
                         case 1: {
-                             int id, quantity; double price; string name, category;
-                             cout << "Enter product ID: "; cin >> id;
-                             cout << "Enter product name: "; cin >> name;
-                             cout << "Enter product price: "; cin >> price;
-                             cout << "Enter product quantity: "; cin >> quantity;
-                             cout << "Enter product category: "; cin >> category;
-                             stock.addProduct(id, name, price, quantity, category);
-                             break; }
+                            int id, quantity; double price; string name, category;
+                            cout << "Enter product ID: "; cin >> id;
+                            cout << "Enter product name: "; cin >> name;
+                            cout << "Enter product price: "; cin >> price;
+                            cout << "Enter product quantity: "; cin >> quantity;
+                            cout << "Enter product category: "; cin >> category;
+                            stock.addProduct(id, name, price, quantity, category);
+                            break; }
                         case 2:
-                             stock.viewProduct("stock.csv");
-                             break;
+                            stock.viewProduct("stock.csv");
+                            break;
                         case 3: {
-                             int id; cout << "Enter product ID to search: "; cin >> id;
-                             stock.searchProduct(id);
-                             break; }
+                            int id; cout << "Enter product ID to search: "; cin >> id;
+                            stock.searchProduct(id);
+                            break; }
                         case 4: {
-                             int id; cout << "Enter product ID to update: "; cin >> id;
-                             stock.updateProduct(id);
-                             break; }
+                            int id; cout << "Enter product ID to update: "; cin >> id;
+                            stock.updateProduct(id);
+                            break; }
                         case 5: {
-                             int id; cout << "Enter product ID to delete: "; cin >> id;
-                             stock.deleteProduct(id);
-                             break; }
+                            int id; cout << "Enter product ID to delete: "; cin >> id;
+                            stock.deleteProduct(id);
+                            break; }
                         case 6: {
-                             int id; cout << "Enter product ID to restock: "; cin >> id;
-                             stock.addRestockRequest(id);
-                             stock.processRestockRequests();
-                             break; }
+                            int id; cout << "Enter product ID to restock: "; cin >> id;
+                            stock.addRestockRequest(id);
+                            stock.processRestockRequests();
+                            break; }
                         case 7:
+                            stock.sortByName();
+                            break;
+                        case 8:
+                            stock.sortById();
+                            break;
+                        case 9:
+                            stock.undoLastOperation();
+                            break;
+                        case 10:
                             cout << "Logging out...\n";
                             break;
                         default:
                             cout << "Invalid choice. Please try again.\n";
                             break;
                     }
-                } while (menuChoice != 7);
+                } while (menuChoice != 10);
             }
 
         } else if (choice == 2) {

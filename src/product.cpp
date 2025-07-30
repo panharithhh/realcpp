@@ -19,7 +19,7 @@ Stock::~Stock() {
     }
 }
 
-void Stock::_addProduct(int id, std::string name, double price, int quantity, std::string category) {
+void Stock::_addProduct(int id, string name, double price, int quantity, string category) {
     Product* p = new Product;
     p->id = id;
     p->name = name;
@@ -39,30 +39,30 @@ void Stock::_addProduct(int id, std::string name, double price, int quantity, st
 }
 
 void Stock::swapProductData(Product* a, Product* b) {
-    std::swap(a->id, b->id);
-    std::swap(a->name, b->name);
-    std::swap(a->price, b->price);
-    std::swap(a->quantity, b->quantity);
-    std::swap(a->category, b->category);
+    swap(a->id, b->id);
+    swap(a->name, b->name);
+    swap(a->price, b->price);
+    swap(a->quantity, b->quantity);
+    swap(a->category, b->category);
 }
 
-void Stock::addProduct(int id, std::string name, double price, int quantity, std::string category) {
-    // Save current state for undo
+void Stock::addProduct(int id, string name, double price, int quantity, string category) {
+    
     Product snapshot{ id, name, price, quantity, category, nullptr, nullptr };
     undoStack.push(snapshot);
 
     _addProduct(id, name, price, quantity, category);
     saveStock();
-    std::cout << "Product added successfully!\n";
+    cout << "Product added successfully!\n";
 }
 
-void Stock::viewProduct(const std::string& stockFile) {
+void Stock::viewProduct(const string& stockFile) {
     loadStock();
     Product* current = head;
-    std::cout << "\nID\tName\tPrice\tQty\tCategory\n";
-    std::cout << "---------------------------------------------\n";
+    cout << "\nID\tName\tPrice\tQty\tCategory\n";
+    cout << "---------------------------------------------\n";
     while (current) {
-        std::cout << current->id << "\t" << current->name << "\t" << current->price << "\t" << current->quantity << "\t" << current->category << "\n";
+        cout << current->id << "\t" << current->name << "\t" << current->price << "\t" << current->quantity << "\t" << current->category << "\n";
         current = current->next;
     }
 }
@@ -86,15 +86,15 @@ void Stock::deleteProduct(int id) {
     Product* current = head;
     while (current) {
         if (current->id == id) {
-            undoStack.push(*current); // save for undo
+            undoStack.push(*current); 
             _deleteProduct(id);
             saveStock();
-            std::cout << "Product deleted.\n";
+            cout << "Product deleted.\n";
             return;
         }
         current = current->next;
     }
-    std::cout << "Product not found.\n";
+    cout << "Product not found.\n";
 }
 
 void Stock::updateProduct(int id) {
@@ -104,31 +104,31 @@ void Stock::updateProduct(int id) {
             undoStack.push(*current);
             int newQty;
             double newPrice;
-            std::cout << "Enter new quantity: ";
-            std::cin >> newQty;
-            std::cout << "Enter new price: ";
-            std::cin >> newPrice;
+            cout << "Enter new quantity: ";
+            cin >> newQty;
+            cout << "Enter new price: ";
+            cin >> newPrice;
             current->quantity = newQty;
             current->price = newPrice;
             saveStock();
-            std::cout << "Product updated.\n";
+            cout << "Product updated.\n";
             return;
         }
         current = current->next;
     }
-    std::cout << "Product not found.\n";
+    cout << "Product not found.\n";
 }
 
 void Stock::searchProduct(int id) {
     Product* current = head;
     while (current) {
         if (current->id == id) {
-            std::cout << "Product found: " << current->name << " (Qty: " << current->quantity << ")\n";
+            cout << "Product found: " << current->name << " (Qty: " << current->quantity << ")\n";
             return;
         }
         current = current->next;
     }
-    std::cout << "Product not found.\n";
+    cout << "Product not found.\n";
 }
 
 void Stock::sortByName() {
@@ -145,14 +145,32 @@ void Stock::sortByName() {
             current = current->next;
         }
     } while (swapped);
-    std::cout << "Products sorted by name.\n";
+    cout << "Products sorted by name.\n";
+    saveStock();
+}
+
+void Stock::sortById() {
+    if (!head) return;
+    bool swapped;
+    do {
+        swapped = false;
+        Product* current = head;
+        while (current->next) {
+            if (current->id > current->next->id) {
+                swapProductData(current, current->next);
+                swapped = true;
+            }
+            current = current->next;
+        }
+    } while (swapped);
+    cout << "Products sorted by ID.\n";
     saveStock();
 }
 
 void Stock::loadStock() {
-    std::ifstream file("stock.csv");
-    if (!file.is_open()) return; // no stock yet
-    // clear existing list
+    ifstream file("stock.csv");
+    if (!file.is_open()) return; 
+    
     Product* current = head;
     while (current) {
         Product* next = current->next;
@@ -161,25 +179,25 @@ void Stock::loadStock() {
     }
     head = tail = nullptr;
 
-    std::string line;
-    while (std::getline(file, line)) {
-        std::stringstream ss(line);
-        std::string idStr, name, priceStr, qtyStr, category;
-        std::getline(ss, idStr, ',');
-        std::getline(ss, name, ',');
-        std::getline(ss, priceStr, ',');
-        std::getline(ss, qtyStr, ',');
-        std::getline(ss, category, ',');
-        int id = std::stoi(idStr);
-        double price = std::stod(priceStr);
-        int qty = std::stoi(qtyStr);
+    string line;
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string idStr, name, priceStr, qtyStr, category;
+        getline(ss, idStr, ',');
+        getline(ss, name, ',');
+        getline(ss, priceStr, ',');
+        getline(ss, qtyStr, ',');
+        getline(ss, category, ',');
+        int id = stoi(idStr);
+        double price = stod(priceStr);
+        int qty = stoi(qtyStr);
         _addProduct(id, name, price, qty, category);
     }
     file.close();
 }
 
 void Stock::saveStock() {
-    std::ofstream file("stock.csv");
+    ofstream file("stock.csv");
     Product* current = head;
     while (current) {
         file << current->id << "," << current->name << "," << current->price << "," << current->quantity << "," << current->category << "\n";
@@ -191,7 +209,7 @@ void Stock::saveStock() {
 
 void Stock::undoLastOperation() {
     if (undoStack.empty()) {
-        std::cout << "Nothing to undo!\n";
+        cout << "Nothing to undo!\n";
         return;
     }
 
@@ -204,7 +222,7 @@ void Stock::undoLastOperation() {
         if (current->id == lastState.id) {
             // Restore previous state
             *current = lastState;
-            std::cout << "Undo successful! Product ID " << lastState.id << " restored.\n";
+            cout << "Undo successful! Product ID " << lastState.id << " restored.\n";
             saveStock();
             return;
         }
@@ -214,18 +232,18 @@ void Stock::undoLastOperation() {
     // If product doesn't exist (was deleted), add it back
     _addProduct(lastState.id, lastState.name, lastState.price,
                lastState.quantity, lastState.category);
-    std::cout << "Undo successful! Product ID " << lastState.id << " restored.\n";
+    cout << "Undo successful! Product ID " << lastState.id << " restored.\n";
     saveStock();
 }
 
 void Stock::addRestockRequest(int id) {
     restockQueue.push(id);
-    std::cout << "Restock request added for Product ID: " << id << std::endl;
+    cout << "Restock request added for Product ID: " << id << endl;
 }
 
 void Stock::processRestockRequests() {
     if (restockQueue.empty()) {
-        std::cout << "No restock requests in queue!\n";
+        cout << "No restock requests in queue!\n";
         return;
     }
 
@@ -244,23 +262,23 @@ void Stock::processRestockRequests() {
 
                 // Restock logic
                 int restockQty;
-                std::cout << "Enter restock quantity for Product ID " << id << ": ";
-                while (!(std::cin >> restockQty)) {
-                    std::cout << "Invalid input. Please enter a number: ";
-                    std::cin.clear();
-                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                cout << "Enter restock quantity for Product ID " << id << ": ";
+                while (!(cin >> restockQty)) {
+                    cout << "Invalid input. Please enter a number: ";
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
                 }
 
                 current->quantity += restockQty;
-                std::cout << "Restocked " << restockQty << " units of Product ID " << id
-                          << ". New quantity: " << current->quantity << std::endl;
+                cout << "Restocked " << restockQty << " units of Product ID " << id
+                          << ". New quantity: " << current->quantity << endl;
                 break;
             }
             current = current->next;
         }
 
         if (!found) {
-            std::cout << "Product ID " << id << " not found. Restock skipped.\n";
+            cout << "Product ID " << id << " not found. Restock skipped.\n";
         }
     }
     saveStock();
