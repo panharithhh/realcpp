@@ -2,6 +2,7 @@
 #define PRODUCT_H
 
 #include <string>
+#include <stdexcept>
 
 using namespace std;
 
