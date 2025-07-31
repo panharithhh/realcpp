@@ -234,9 +234,7 @@ int main() {
     bool running = true;
     int choice;
     string email, password, re_entered_password, username, code;
-    generatenum g;
     Stock stock;
-    string generatedCode = g.computerGeneratedPassword();
 
     {
         ofstream f("data.csv", ios::app);
@@ -327,6 +325,8 @@ int main() {
             cin >> re_entered_password;
             cout << BOLD "Enter a username: " RESET;
             cin >> username;
+            generatenum g;
+            string generatedCode = g.computerGeneratedPassword();
             cout << BOLD "Enter the registration code: " RESET;
             cin >> code;
 
@@ -341,7 +341,6 @@ int main() {
                 file << email << "," << password << "," << username << "\n";
                 file.close();
                 showMessage("\nSign up successful!", GREEN);
-                generatedCode = g.computerGeneratedPassword();
             } else {
                 showMessage("\nIncorrect registration code.", RED);
             }
