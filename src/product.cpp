@@ -47,10 +47,6 @@ void Stock::swapProductData(Product* a, Product* b) {
 }
 
 void Stock::addProduct(int id, string name, double price, int quantity, string category) {
-    
-    Product snapshot{ id, name, price, quantity, category, nullptr, nullptr };
-    undoStack.push(snapshot);
-
     _addProduct(id, name, price, quantity, category);
     saveStock();
     cout << "Product added successfully!\n";
@@ -59,12 +55,26 @@ void Stock::addProduct(int id, string name, double price, int quantity, string c
 void Stock::viewProduct(const string& stockFile) {
     loadStock();
     Product* current = head;
-    cout << "\nID\tName\tPrice\tQty\tCategory\n";
-    cout << "---------------------------------------------\n";
+    
+    // Table header
+    cout << "\n";
+    cout << "┌────────┬──────────────────────┬───────────┬──────────┬────────────┐\n";
+    cout << "│ " << left << setw(7) << "ID" << " │ " << setw(20) << "Name" << " │ " 
+         << setw(9) << "Price" << " │ " << setw(8) << "Qty" << " │ " << setw(10) << "Category" << " │\n";
+    cout << "├────────┼──────────────────────┼───────────┼──────────┼────────────┤\n";
+    
+    // Table rows
     while (current) {
-        cout << current->id << "\t" << current->name << "\t" << current->price << "\t" << current->quantity << "\t" << current->category << "\n";
+        cout << "│ " << left << setw(7) << current->id << " │ " 
+             << setw(20) << (current->name.length() > 20 ? current->name.substr(0, 17) + "..." : current->name) << " │ "
+             << "$" << right << setw(8) << fixed << setprecision(2) << current->price << " │ "
+             << left << setw(8) << current->quantity << " │ "
+             << setw(10) << (current->category.length() > 10 ? current->category.substr(0, 7) + "..." : current->category) << " │\n";
         current = current->next;
     }
+    
+    // Table footer
+    cout << "└────────┴──────────────────────┴───────────┴──────────┴────────────┘\n\n";
 }
 
 void Stock::_deleteProduct(int id) {
@@ -101,7 +111,6 @@ void Stock::updateProduct(int id) {
     Product* current = head;
     while (current) {
         if (current->id == id) {
-            undoStack.push(*current);
             int newQty;
             double newPrice;
             cout << "Enter new quantity: ";
@@ -216,24 +225,26 @@ void Stock::undoLastOperation() {
     Product lastState = undoStack.top();
     undoStack.pop();
 
-    // Check if product exists
+    // Only handle undo for deleted products (product not in current list)
+    bool productExists = false;
     Product* current = head;
     while (current != nullptr) {
         if (current->id == lastState.id) {
-            // Restore previous state
-            *current = lastState;
-            cout << "Undo successful! Product ID " << lastState.id << " restored.\n";
-            saveStock();
-            return;
+            productExists = true;
+            break;
         }
         current = current->next;
     }
 
-    // If product doesn't exist (was deleted), add it back
-    _addProduct(lastState.id, lastState.name, lastState.price,
-               lastState.quantity, lastState.category);
-    cout << "Undo successful! Product ID " << lastState.id << " restored.\n";
-    saveStock();
+    if (!productExists) {
+        // Add the deleted product back
+        _addProduct(lastState.id, lastState.name, lastState.price,
+                   lastState.quantity, lastState.category);
+        saveStock();
+        cout << "Undo successful! Deleted product ID " << lastState.id << " has been restored.\n";
+    } else {
+        cout << "Cannot undo: The product already exists in the inventory.\n";
+    }
 }
 
 void Stock::addRestockRequest(int id) {
@@ -257,9 +268,6 @@ void Stock::processRestockRequests() {
         while (current != nullptr) {
             if (current->id == id) {
                 found = true;
-                // Save current state for possible undo
-                undoStack.push(*current);
-
                 // Restock logic
                 int restockQty;
                 cout << "Enter restock quantity for Product ID " << id << ": ";

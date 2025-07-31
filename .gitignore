@@ -24,6 +24,7 @@ Testing/
 
 # VSCode settings (if any)
 .vscode/
+.idea/
 
 # Generated compile commands
 compile_commands.json
