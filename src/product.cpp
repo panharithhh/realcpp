@@ -47,36 +47,87 @@ void Stock::swapProductData(Product* a, Product* b) {
 }
 
 void Stock::addProduct(int id, string name, double price, int quantity, string category) {
+    
+    Product snapshot{ id, name, price, quantity, category, nullptr, nullptr };
+    undoStack.push(snapshot);
+
     _addProduct(id, name, price, quantity, category);
     saveStock();
     cout << "Product added successfully!\n";
 }
 
+
 void Stock::viewProduct(const string& stockFile) {
     loadStock();
     Product* current = head;
     
-    // Table header
-    cout << "\n";
-    cout << "┌────────┬──────────────────────┬───────────┬──────────┬────────────┐\n";
-    cout << "│ " << left << setw(7) << "ID" << " │ " << setw(20) << "Name" << " │ " 
-         << setw(9) << "Price" << " │ " << setw(8) << "Qty" << " │ " << setw(10) << "Category" << " │\n";
-    cout << "├────────┼──────────────────────┼───────────┼──────────┼────────────┤\n";
-    
-    // Table rows
+    size_t maxNameLen = 4;
+    size_t maxCategoryLen = 8;
     while (current) {
-        cout << "│ " << left << setw(7) << current->id << " │ " 
-             << setw(20) << (current->name.length() > 20 ? current->name.substr(0, 17) + "..." : current->name) << " │ "
-             << "$" << right << setw(8) << fixed << setprecision(2) << current->price << " │ "
-             << left << setw(8) << current->quantity << " │ "
-             << setw(10) << (current->category.length() > 10 ? current->category.substr(0, 7) + "..." : current->category) << " │\n";
+        if (current->name.length() > maxNameLen) maxNameLen = current->name.length();
+        if (current->category.length() > maxCategoryLen) maxCategoryLen = current->category.length();
+        current = current->next;
+    }
+    current = head;
+
+    maxNameLen = max(maxNameLen, (size_t)20);
+    maxCategoryLen = max(maxCategoryLen, (size_t)15);
+    
+    const int idWidth = 10;
+    const int priceWidth = 12;
+    const int qtyWidth = 10;
+    const int nameWidth = maxNameLen + 2;
+    const int categoryWidth = maxCategoryLen + 2;
+    
+    cout << "\n+";
+    cout << string(idWidth, '-') << "+";
+    cout << string(nameWidth, '-') << "+";
+    cout << string(priceWidth, '-') << "+";
+    cout << string(qtyWidth, '-') << "+";
+    cout << string(categoryWidth, '-') << "+\n";
+    
+    cout << "| " << left << setw(idWidth-1) << "ID" << "| ";
+    cout << setw(nameWidth-1) << "Name" << "| ";
+    cout << setw(priceWidth-1) << "Price" << "| ";
+    cout << setw(qtyWidth-1) << "Quantity" << "| ";
+    cout << setw(categoryWidth-1) << "Category" << "|\n";
+    
+    cout << "+";
+    cout << string(idWidth, '-') << "+";
+    cout << string(nameWidth, '-') << "+";
+    cout << string(priceWidth, '-') << "+";
+    cout << string(qtyWidth, '-') << "+";
+    cout << string(categoryWidth, '-') << "+\n";
+    
+    while (current) {
+        cout << "| " << left << setw(idWidth-1) << current->id << "| ";
+        
+        string displayName = current->name;
+        if (displayName.length() > nameWidth-1) {
+            displayName = displayName.substr(0, nameWidth-4) + "...";
+        }
+        cout << setw(nameWidth-1) << displayName << "| ";
+        
+        cout << "$" << right << setw(priceWidth-2) << fixed << setprecision(2) << current->price << " | ";
+        
+        cout << left << setw(qtyWidth-1) << current->quantity << "| ";
+        
+        string displayCategory = current->category;
+        if (displayCategory.length() > categoryWidth-1) {
+            displayCategory = displayCategory.substr(0, categoryWidth-4) + "...";
+        }
+        cout << setw(categoryWidth-1) << displayCategory << "|\n";
+        
         current = current->next;
     }
     
-    // Table footer
-    cout << "└────────┴──────────────────────┴───────────┴──────────┴────────────┘\n\n";
+    cout << "+";
+    cout << string(idWidth, '-') << "+";
+    cout << string(nameWidth, '-') << "+";
+    cout << string(priceWidth, '-') << "+";
+    cout << string(qtyWidth, '-') << "+";
+    cout << string(categoryWidth, '-') << "+\n\n";
 }
-
 void Stock::_deleteProduct(int id) {
     Product* current = head;
     while (current) {
@@ -111,6 +162,7 @@ void Stock::updateProduct(int id) {
     Product* current = head;
     while (current) {
         if (current->id == id) {
+            undoStack.push(*current);
             int newQty;
             double newPrice;
             cout << "Enter new quantity: ";
@@ -225,26 +277,24 @@ void Stock::undoLastOperation() {
     Product lastState = undoStack.top();
     undoStack.pop();
 
-    // Only handle undo for deleted products (product not in current list)
-    bool productExists = false;
+    // Check if product exists
     Product* current = head;
     while (current != nullptr) {
         if (current->id == lastState.id) {
-            productExists = true;
-            break;
+            // Restore previous state
+            *current = lastState;
+            cout << "Undo successful! Product ID " << lastState.id << " restored.\n";
+            saveStock();
+            return;
         }
         current = current->next;
     }
 
-    if (!productExists) {
-        // Add the deleted product back
-        _addProduct(lastState.id, lastState.name, lastState.price,
-                   lastState.quantity, lastState.category);
-        saveStock();
-        cout << "Undo successful! Deleted product ID " << lastState.id << " has been restored.\n";
-    } else {
-        cout << "Cannot undo: The product already exists in the inventory.\n";
-    }
+    // If product doesn't exist (was deleted), add it back
+    _addProduct(lastState.id, lastState.name, lastState.price,
+               lastState.quantity, lastState.category);
+    cout << "Undo successful! Product ID " << lastState.id << " restored.\n";
+    saveStock();
 }
 
 void Stock::addRestockRequest(int id) {
@@ -268,6 +318,9 @@ void Stock::processRestockRequests() {
         while (current != nullptr) {
             if (current->id == id) {
                 found = true;
+                // Save current state for possible undo
+                undoStack.push(*current);
+
                 // Restock logic
                 int restockQty;
                 cout << "Enter restock quantity for Product ID " << id << ": ";
