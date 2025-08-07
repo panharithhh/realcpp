@@ -19,12 +19,11 @@ void ProductStack::push(const Product& val) {
     newNode->next = topNode;
     topNode = newNode;
 }
-
 void ProductStack::pop() {
     if (empty()) return;
-    Node* temp = topNode;
-    topNode = topNode->next;
-    delete temp;
+    Node* temp = topNode->next;
+    delete topNode;
+    topNode = temp;
 }
 
 Product& ProductStack::top() {
