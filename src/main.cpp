@@ -7,7 +7,6 @@
 #include <limits>
 #include <iomanip>
 #include <vector>
-#include <algorithm>
 #include "generatenum.h"
 #include "product.h"
 #include <thread>
@@ -86,7 +85,7 @@ void displayProductMenu() {
         "6. Restock Product",
         "7. Sort Products By Name",
         "8. Sort Products By ID",
-        "9. Undo Last Operation",
+        "9. Undo Last Delete Operation",
         "10. Logout"
     };
     for (const auto& option : options) {
@@ -228,16 +227,17 @@ void handleUndo(Stock& stock) {
 }
 
 int main() {
-    Stock stock;
-    stock.loadStock();
     enableColors();
     displaySplash();
     srand(time(0));
+
+    Stock stock;
+    stock.loadStock();
     bool running = true;
     int choice;
     string email, password, re_entered_password, username, code;
     generatenum g;
-    Stock stock;
+    
     string generatedCode = g.computerGeneratedPassword();
 
     {
