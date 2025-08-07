@@ -2,8 +2,6 @@
 #define PRODUCT_H
 
 #include <iostream>
-#include <stack>
-#include <queue>
 #include <string>
 
 using namespace std;
@@ -18,12 +16,53 @@ struct Product {
     Product* next;
 };
 
+// Custom Stack implementation
+class ProductStack {
+private:
+    struct Node {
+        Product data;
+        Node* next;
+        Node(const Product& val) : data(val), next(nullptr) {}
+    };
+    Node* topNode;
+
+public:
+    ProductStack() : topNode(nullptr) {}
+    ~ProductStack();
+    
+    void push(const Product& val);
+    void pop();
+    Product& top();
+    bool empty() const { return topNode == nullptr; }
+};
+
+// Custom Queue implementation
+class ProductQueue {
+private:
+    struct Node {
+        int data;
+        Node* next;
+        Node(int val) : data(val), next(nullptr) {}
+    };
+    Node* frontNode;
+    Node* backNode;
+
+public:
+    ProductQueue() : frontNode(nullptr), backNode(nullptr) {}
+    ~ProductQueue();
+    
+    void push(int val);
+    void pop();
+    int front() const;
+    bool empty() const { return frontNode == nullptr; }
+};
+
 class Stock {
 private:
     Product* head;
     Product* tail;
-    std::stack<Product> undoStack;  // For undo functionality
-    std::queue<int> restockQueue;   // For restock requests
+    ProductStack undoStack;  // For undo functionality
+    ProductQueue restockQueue;   // For restock requests
 
     void swapProductData(Product* a, Product* b);
     void _addProduct(int id, string name, double price, int quantity, string category);

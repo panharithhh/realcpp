@@ -8,6 +8,65 @@
 
 using namespace std;
 
+ProductStack::~ProductStack() {
+    while (!empty()) {
+        pop();
+    }
+}
+
+void ProductStack::push(const Product& val) {
+    Node* newNode = new Node(val);
+    newNode->next = topNode;
+    topNode = newNode;
+}
+
+void ProductStack::pop() {
+    if (empty()) return;
+    Node* temp = topNode;
+    topNode = topNode->next;
+    delete temp;
+}
+
+Product& ProductStack::top() {
+    if (empty()) {
+        throw runtime_error("Stack is empty!");
+    }
+    return topNode->data;
+}
+
+ProductQueue::~ProductQueue() {
+    while (!empty()) {
+        pop();
+    }
+}
+
+void ProductQueue::push(int val) {
+    Node* newNode = new Node(val);
+    if (empty()) {
+        frontNode = backNode = newNode;
+    } else {
+        backNode->next = newNode;
+        backNode = newNode;
+    }
+}
+
+void ProductQueue::pop() {
+    if (empty()) return;
+    Node* temp = frontNode;
+    frontNode = frontNode->next;
+    if (frontNode == nullptr) {
+        backNode = nullptr;
+    }
+    delete temp;
+}
+
+int ProductQueue::front() const {
+    if (empty()) {
+        throw runtime_error("Queue is empty!");
+    }
+    return frontNode->data;
+}
+
 Stock::Stock() : head(nullptr), tail(nullptr) {}
 
 Stock::~Stock() {
@@ -96,7 +155,16 @@ void Stock::deleteProduct(int id) {
     Product* current = head;
     while (current) {
         if (current->id == id) {
-            undoStack.push(*current); 
+            // Create a copy of the product to store in the undo stack
+            Product productCopy = *current;
+            // Clear the next/prev pointers to avoid potential issues
+            productCopy.next = nullptr;
+            productCopy.prev = nullptr;
+            
+            // Push the copy to our custom stack
+            undoStack.push(productCopy);
+            
+            // Delete the product from the list
             _deleteProduct(id);
             saveStock();
             cout << "Product deleted.\n";
