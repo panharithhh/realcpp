@@ -228,6 +228,8 @@ void handleUndo(Stock& stock) {
 }
 
 int main() {
+    Stock stock;
+    stock.loadStock();
     enableColors();
     displaySplash();
     srand(time(0));
@@ -319,6 +321,7 @@ int main() {
 
         } else if (choice == 2) {
             displayHeader("SIGN UP");
+            cout << RED << generatedCode << RESET <<endl;
             cout << BOLD "Enter your email: " RESET;
             cin >> email;
             cout << BOLD "Enter your password: " RESET;
