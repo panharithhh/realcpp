@@ -4,7 +4,8 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
-#include <algorithm>
+#include <chrono>
+#include <thread>
 
 using namespace std;
 
@@ -64,6 +65,16 @@ int ProductQueue::front() const {
         throw runtime_error("Queue is empty!");
     }
     return frontNode->data;
+}
+
+int ProductQueue::size() const {
+    int count = 0;
+    Node* current = frontNode;
+    while (current != nullptr) {
+        count++;
+        current = current->next;
+    }
+    return count;
 }
 
 Stock::Stock() : head(nullptr), tail(nullptr) {}
@@ -154,16 +165,12 @@ void Stock::deleteProduct(int id) {
     Product* current = head;
     while (current) {
         if (current->id == id) {
-            // Create a copy of the product to store in the undo stack
             Product productCopy = *current;
-            // Clear the next/prev pointers to avoid potential issues
             productCopy.next = nullptr;
             productCopy.prev = nullptr;
             
-            // Push the copy to our custom stack
             undoStack.push(productCopy);
             
-            // Delete the product from the list
             _deleteProduct(id);
             saveStock();
             cout << "Product deleted.\n";
@@ -292,7 +299,6 @@ void Stock::undoLastOperation() {
     Product lastState = undoStack.top();
     undoStack.pop();
 
-    // Only handle undo for deleted products (product not in current list)
     bool productExists = false;
     Product* current = head;
     while (current != nullptr) {
@@ -304,7 +310,6 @@ void Stock::undoLastOperation() {
     }
 
     if (!productExists) {
-        // Add the deleted product back
         _addProduct(lastState.id, lastState.name, lastState.price,
                    lastState.quantity, lastState.category);
         saveStock();
@@ -322,8 +327,12 @@ void Stock::addRestockRequest(int id) {
 void Stock::processRestockRequests() {
     if (restockQueue.empty()) {
         cout << "No restock requests in queue!\n";
+        this_thread::sleep_for(chrono::seconds(1));
         return;
     }
+
+    cout << "Processing " << restockQueue.size() << " restock requests...\n";
+    int processed = 0;
 
     while (!restockQueue.empty()) {
         int id = restockQueue.front();
@@ -335,7 +344,6 @@ void Stock::processRestockRequests() {
         while (current != nullptr) {
             if (current->id == id) {
                 found = true;
-                // Restock logic
                 int restockQty;
                 cout << "Enter restock quantity for Product ID " << id << ": ";
                 while (!(cin >> restockQty)) {
@@ -345,8 +353,10 @@ void Stock::processRestockRequests() {
                 }
 
                 current->quantity += restockQty;
-                cout << "Restocked " << restockQty << " units of Product ID " << id
-                          << ". New quantity: " << current->quantity << endl;
+                cout << "[Request " << ++processed << "] Restocked " << restockQty 
+                     << " units of Product ID " << id
+                     << ". New quantity: " << current->quantity << endl;
+                found = true;
                 break;
             }
             current = current->next;
@@ -354,7 +364,9 @@ void Stock::processRestockRequests() {
 
         if (!found) {
             cout << "Product ID " << id << " not found. Restock skipped.\n";
+            this_thread::sleep_for(chrono::seconds(1));
         }
     }
     saveStock();
+    cout << "\nProcessed " << processed << " restock requests.\n";
 }

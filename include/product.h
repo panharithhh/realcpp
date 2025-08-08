@@ -82,6 +82,8 @@ public:
     { 
         return frontNode == nullptr; 
     }
+    
+    int size() const;
 };
 
 class Stock {

@@ -82,11 +82,12 @@ void displayProductMenu() {
         "3. Search Products",
         "4. Update Product",
         "5. Delete Product",
-        "6. Restock Product",
-        "7. Sort Products By Name",
-        "8. Sort Products By ID",
-        "9. Undo Last Delete Operation",
-        "10. Logout"
+        "6. Add Restock Request",
+        "7. Process Restock Requests",
+        "8. Sort Products By Name",
+        "9. Sort Products By ID",
+        "10. Undo Last Delete Operation",
+        "11. Logout"
     };
     for (const auto& option : options) {
         printCentered(option, 80, BOLD YELLOW);
@@ -202,13 +203,12 @@ void handleDeleteProduct(Stock& stock) {
 
 void handleRestockProduct(Stock& stock) {
     int id; 
-    displayHeader("RESTOCK PRODUCT");
+    displayHeader("ADD RESTOCK REQUEST");
     cout << BOLD "Enter product ID to restock: " RESET; 
     cin >> id;
     
     stock.addRestockRequest(id);
-    stock.processRestockRequests();
-    showMessage("\nRestock request processed!", GREEN);
+    showMessage("\nRestock request added to queue!", GREEN);
 }
 
 void handleSortByName(Stock& stock) {
@@ -219,6 +219,11 @@ void handleSortByName(Stock& stock) {
 void handleSortById(Stock& stock) {
     stock.sortById();
     showMessage("\nProducts sorted by ID!", GREEN);
+}
+
+void handleProcessRestockRequests(Stock& stock) {
+    displayHeader("PROCESS RESTOCK REQUESTS");
+    stock.processRestockRequests();
 }
 
 void handleUndo(Stock& stock) {
@@ -308,13 +313,14 @@ int main() {
                         case 4: handleUpdateProduct(stock); break;
                         case 5: handleDeleteProduct(stock); break;
                         case 6: handleRestockProduct(stock); break;
-                        case 7: handleSortByName(stock); break;
-                        case 8: handleSortById(stock); break;
-                        case 9: handleUndo(stock); break;
-                        case 10: showMessage("\nLogging out...", MAGENTA); break;
+                        case 7: handleProcessRestockRequests(stock); break;
+                        case 8: handleSortByName(stock); break;
+                        case 9: handleSortById(stock); break;
+                        case 10: handleUndo(stock); break;
+                        case 11: loggedIn = false; break;
                         default: showMessage("Invalid choice. Please try again.", RED); break;
                     }
-                } while (menuChoice != 10);
+                } while (menuChoice != 11);
             } else {
                 showMessage("Wrong email or password.", RED);
             }
